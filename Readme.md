@@ -301,8 +301,7 @@ Each map can be combined, remapped or visualized as textures, heightmaps, proced
 
 This repository includes an `LICENSE` (MIT LICENSE for now). See `LICENSE.txt` for details.
 
-```
-MIT License (LICENSE.txt)
-```
+## MIT License (LICENSE.txt)
+
 
 ---
