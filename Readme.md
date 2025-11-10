@@ -73,12 +73,14 @@ cmake ..
 cmake --build . --config Release
 ```
 
-if building first time, skip this step.
+If building first time, Skip this Step.
 if already built once and want to rebuild from scratch, run:
 ```
 cmake ..
 cmake --build . --clean-first
 ```
+
+Finally Run.
 
 ```
 NoiseExample.exe #or ./NoiseExample 
