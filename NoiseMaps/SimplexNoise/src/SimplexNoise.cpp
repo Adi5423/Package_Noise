@@ -1,0 +1,178 @@
+#include "SimplexNoise.hpp"
+#include <random>
+#include <cmath>
+#include <iostream>
+#include <filesystem>
+#include "stb_image_write.h"
+
+namespace Noise {
+
+    // ---------------------------------------------------------
+    // Constructor — creates permutation table
+    // ---------------------------------------------------------
+    SimplexNoise::SimplexNoise(int seed) {
+        perm.resize(512);
+        std::vector<int> p(256);
+        for (int i = 0; i < 256; ++i)
+            p[i] = i;
+
+        if (seed >= 0) {
+            std::mt19937 rng(seed);
+            std::shuffle(p.begin(), p.end(), rng);
+        }
+        else {
+            std::random_device rd;
+            std::mt19937 rng(rd());
+            std::shuffle(p.begin(), p.end(), rng);
+        }
+
+        for (int i = 0; i < 512; ++i)
+            perm[i] = p[i & 255];
+    }
+
+    // ---------------------------------------------------------
+    // 2D Simplex noise: returns value in [-1, 1]
+    // ---------------------------------------------------------
+    float SimplexNoise::noise2D(float xin, float yin) const {
+        float s = (xin + yin) * F2;
+        int i = static_cast<int>(std::floor(xin + s));
+        int j = static_cast<int>(std::floor(yin + s));
+
+        float t = (i + j) * G2;
+        float X0 = i - t;
+        float Y0 = j - t;
+        float x0 = xin - X0;
+        float y0 = yin - Y0;
+
+        int i1, j1;
+        if (x0 > y0) { i1 = 1; j1 = 0; }
+        else { i1 = 0; j1 = 1; }
+
+        float x1 = x0 - i1 + G2;
+        float y1 = y0 - j1 + G2;
+        float x2 = x0 - 1.0f + 2.0f * G2;
+        float y2 = y0 - 1.0f + 2.0f * G2;
+
+        int ii = i & 255;
+        int jj = j & 255;
+        int gi0 = perm[ii + perm[jj]] % 8;
+        int gi1 = perm[ii + i1 + perm[jj + j1]] % 8;
+        int gi2 = perm[ii + 1 + perm[jj + 1]] % 8;
+
+        float n0, n1, n2;
+        n0 = n1 = n2 = 0.0f;
+
+        float t0 = 0.5f - x0 * x0 - y0 * y0;
+        if (t0 >= 0.0f) {
+            t0 *= t0;
+            n0 = t0 * t0 * (grad3[gi0][0] * x0 + grad3[gi0][1] * y0);
+        }
+
+        float t1 = 0.5f - x1 * x1 - y1 * y1;
+        if (t1 >= 0.0f) {
+            t1 *= t1;
+            n1 = t1 * t1 * (grad3[gi1][0] * x1 + grad3[gi1][1] * y1);
+        }
+
+        float t2 = 0.5f - x2 * x2 - y2 * y2;
+        if (t2 >= 0.0f) {
+            t2 *= t2;
+            n2 = t2 * t2 * (grad3[gi2][0] * x2 + grad3[gi2][1] * y2);
+        }
+
+        // Scale constant for 2D
+        return 70.0f * (n0 + n1 + n2);
+    }
+
+    // ---------------------------------------------------------
+    // Multi-octave Simplex map generator
+    // ---------------------------------------------------------
+    std::vector<std::vector<float>> generate_simplex_map(
+        int width,
+        int height,
+        float scale,
+        int octaves,
+        float persistence,
+        float lacunarity,
+        float base,
+        int seed
+    ) {
+        if (scale <= 0.0f)
+            throw std::invalid_argument("scale must be > 0");
+        if (octaves < 1)
+            throw std::invalid_argument("octaves must be >= 1");
+
+        SimplexNoise noiseGen(seed);
+        std::vector<std::vector<float>> noise(height, std::vector<float>(width, 0.0f));
+
+        float amplitude = 1.0f;
+        float maxAmp = 0.0f;
+        float frequency = 1.0f;
+
+        for (int o = 0; o < octaves; ++o) {
+            for (int y = 0; y < height; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    float nx = (x + base) / scale * frequency;
+                    float ny = (y + base) / scale * frequency;
+                    noise[y][x] += noiseGen.noise2D(nx, ny) * amplitude;
+                }
+            }
+            maxAmp += amplitude;
+            amplitude *= persistence;
+            frequency *= lacunarity;
+        }
+
+        // Normalize to [0,1]
+        for (int y = 0; y < height; ++y)
+            for (int x = 0; x < width; ++x)
+                noise[y][x] = (noise[y][x] / maxAmp) * 0.5f + 0.5f;
+
+        return noise;
+    }
+
+    // ---------------------------------------------------------
+    // Save as grayscale PNG
+    // ---------------------------------------------------------
+    void save_simplex_image(const std::vector<std::vector<float>>& noise, const std::string& filename) {
+        int height = noise.size();
+        int width = noise[0].size();
+
+        std::vector<unsigned char> img(width * height);
+        for (int y = 0; y < height; ++y)
+            for (int x = 0; x < width; ++x)
+                img[y * width + x] = static_cast<unsigned char>(std::clamp(noise[y][x], 0.0f, 1.0f) * 255.0f);
+
+        std::filesystem::path outputDir = std::filesystem::current_path().parent_path() / "ImageOutput";
+        std::filesystem::create_directories(outputDir);
+        std::filesystem::path outputFile = outputDir / filename;
+
+        stbi_write_png(outputFile.string().c_str(), width, height, 1, img.data(), width);
+        std::cout << "[OK] Simplex noise image saved at: " << outputFile.string() << "\n";
+    }
+
+    // ---------------------------------------------------------
+    // Wrapper — same API pattern as others
+    // ---------------------------------------------------------
+    std::vector<std::vector<float>> create_simplexnoise(
+        int width,
+        int height,
+        float scale,
+        int octaves,
+        float persistence,
+        float lacunarity,
+        float base,
+        int seed,
+        const std::string& showMap,
+        const std::string& filename
+    ) {
+        auto noise = generate_simplex_map(width, height, scale, octaves, persistence, lacunarity, base, seed);
+
+        if (showMap == "image")
+            save_simplex_image(noise, filename);
+        else if (showMap != "none")
+            throw std::invalid_argument("Invalid showMap value. Use 'image' or 'none'.");
+
+        return noise;
+    }
+
+} // namespace Noise
