@@ -68,24 +68,29 @@ mkdir build && cd build
 If want to compile examples built, run:
 ```
 cmake ..              
-cmake --build .
+```
+```
+cmake --build . --config Release
 ```
 
-if already built once 
+if building first time, skip this step.
+if already built once and want to rebuild from scratch, run:
 ```
 cmake ..
 cmake --build . --clean-first
 ```
 
 ```
-./NoiseExample
+NoiseExample.exe #or ./NoiseExample 
 ```
 
 ### Install (optional)
 
 ```bash
 cmake --install . --prefix /path/to/install
+#example: cmake --install . --prefix C:/PackageNoise/allPackagesReady/install
 ```
+
 
 This will place:
 
