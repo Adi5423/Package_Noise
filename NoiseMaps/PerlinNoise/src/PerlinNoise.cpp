@@ -121,7 +121,7 @@ namespace Noise {
     }
 
     // ---------------------------------------------------------
-    // Save Perlin map to grayscale PNG
+    // Save Perlin map to grayscale PNG or JPEG (auto-detected from extension)
     // ---------------------------------------------------------
     void save_perlin_image(const std::vector<std::vector<float>>& noise, const std::string& filename) {
         if (noise.empty() || noise[0].empty()) {
@@ -139,8 +139,20 @@ namespace Noise {
         std::filesystem::path outputDir = std::filesystem::current_path().parent_path() / "ImageOutput";
         std::filesystem::create_directories(outputDir);
         std::filesystem::path outFile = outputDir / filename;
+        std::string extension = outFile.extension().string();
+        
+        // Convert extension to lowercase for comparison
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+        
+        int result = 0;
+        if (extension == ".jpg" || extension == ".jpeg") {
+            // Save as JPEG with quality 90 (range: 1-100, higher = better quality)
+            result = stbi_write_jpg(outFile.string().c_str(), width, height, 1, imgData.data(), 90);
+        } else {
+            // Default to PNG
+            result = stbi_write_png(outFile.string().c_str(), width, height, 1, imgData.data(), width);
+        }
 
-        int result = stbi_write_png(outFile.string().c_str(), width, height, 1, imgData.data(), width);
         if (result == 0) {
             throw std::runtime_error("Failed to write image file: " + outFile.string());
         }

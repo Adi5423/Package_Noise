@@ -50,7 +50,7 @@ namespace Noise {
     }
 
     // -------------------------------------------------------------
-    // Save as grayscale PNG (0–255)
+    // Save as grayscale PNG or JPEG (auto-detected from extension)
     // -------------------------------------------------------------
     void WhiteNoise::save(const std::vector<std::vector<float>>& noise, const std::string& filename) {
         if (noise.empty() || noise[0].empty()) {
@@ -72,7 +72,19 @@ namespace Noise {
 
         // Save file there
         std::filesystem::path outputFile = outputDir / filename;
-        int result = stbi_write_png(outputFile.string().c_str(), width, height, 1, imgData.data(), width);
+        std::string extension = outputFile.extension().string();
+        
+        // Convert extension to lowercase for comparison
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+        
+        int result = 0;
+        if (extension == ".jpg" || extension == ".jpeg") {
+            // Save as JPEG with quality 90 (range: 1-100, higher = better quality)
+            result = stbi_write_jpg(outputFile.string().c_str(), width, height, 1, imgData.data(), 90);
+        } else {
+            // Default to PNG
+            result = stbi_write_png(outputFile.string().c_str(), width, height, 1, imgData.data(), width);
+        }
 
         if (result == 0) {
             throw std::runtime_error("Failed to write image file: " + outputFile.string());

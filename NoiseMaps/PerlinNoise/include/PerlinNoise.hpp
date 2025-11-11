@@ -40,10 +40,10 @@ namespace Noise {
         int seed = -1
     );
 
-    // Save to grayscale PNG file
+    // Save to grayscale PNG or JPEG (auto-detected from extension)
     void save_perlin_image(const std::vector<std::vector<float>>& noise, const std::string& filename = "perlin_noise.png");
 
-    /* Entry wrapper — 
+    /* Entry wrapper ï¿½ 
         - int width, height: output resolution
         - float scale : inverse zoom(higher->smoother / larger features)
         - int octaves : number of layers

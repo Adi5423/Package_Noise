@@ -23,7 +23,7 @@ namespace Noise {
         // Display (prints small preview as text)
         static void show(const std::vector<std::vector<float>>& noise);
 
-        // Save to grayscale PNG file
+        // Save to grayscale PNG or JPEG (auto-detected from extension)
         static void save(const std::vector<std::vector<float>>& noise, const std::string& filename = "white_noise.png");
     };
 

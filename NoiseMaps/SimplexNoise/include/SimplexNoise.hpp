@@ -40,10 +40,10 @@ namespace Noise {
         int seed = -1
     );
 
-    // Save to grayscale PNG file
+    // Save to grayscale PNG or JPEG (auto-detected from extension)
     void save_simplex_image(const std::vector<std::vector<float>>& noise, const std::string& filename = "simplex_noise.png");
 
-    // Entry wrapper — same structure as other noise types
+    // Entry wrapper ï¿½ same structure as other noise types
     std::vector<std::vector<float>> create_simplexnoise(
         int width,
         int height,
