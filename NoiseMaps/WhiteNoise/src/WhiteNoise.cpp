@@ -54,7 +54,7 @@ namespace Noise {
     // -------------------------------------------------------------
     // Save as grayscale PNG or JPEG (auto-detected from extension)
     // -------------------------------------------------------------
-    void WhiteNoise::save(const std::vector<std::vector<float>>& noise, const std::string& filename) {
+    void WhiteNoise::save(const std::vector<std::vector<float>>& noise, const std::string& filename, const std::string& outputDir) {
         if (noise.empty() || noise[0].empty()) {
             throw std::invalid_argument("Cannot save empty noise map.");
         }
@@ -68,12 +68,17 @@ namespace Noise {
             for (int x = 0; x < width; ++x)
                 imgData[y * width + x] = static_cast<unsigned char>(noise[y][x] * 255.0f);
 
-        // Ensure ImageOutput directory exists at project root
-        std::filesystem::path outputDir = std::filesystem::current_path().parent_path() / "ImageOutput";
-        std::filesystem::create_directories(outputDir);
+        // Determine output directory: use custom or default
+        std::filesystem::path outDir;
+        if (outputDir.empty()) {
+            outDir = std::filesystem::current_path().parent_path() / "ImageOutput";
+        } else {
+            outDir = outputDir;
+        }
+        std::filesystem::create_directories(outDir);
 
         // Save file there
-        std::filesystem::path outputFile = outputDir / filename;
+        std::filesystem::path outputFile = outDir / filename;
         std::string extension = outputFile.extension().string();
         
         // Convert extension to lowercase for comparison
@@ -99,13 +104,13 @@ namespace Noise {
     // Python-style wrapper
     // -------------------------------------------------------------
     std::vector<std::vector<float>> create_whitenoise(int width, int height, int seed,
-        const std::string& showMap, const std::string& filename) {
+        const std::string& showMap, const std::string& filename, const std::string& outputDir) {
         auto noise = WhiteNoise::generate(width, height, seed);
 
         if (showMap == "map")
             WhiteNoise::show(noise);
         else if (showMap == "image")
-            WhiteNoise::save(noise, filename);
+            WhiteNoise::save(noise, filename, outputDir);
         else if (showMap != "none")
             throw std::invalid_argument("Invalid showMap value. Use 'map', 'image', or 'none'.");
 

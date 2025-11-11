@@ -144,7 +144,7 @@ namespace Noise {
     // ---------------------------------------------------------
     // Save as grayscale PNG or JPEG (auto-detected from extension)
     // ---------------------------------------------------------
-    void save_simplex_image(const std::vector<std::vector<float>>& noise, const std::string& filename) {
+    void save_simplex_image(const std::vector<std::vector<float>>& noise, const std::string& filename, const std::string& outputDir) {
         if (noise.empty() || noise[0].empty()) {
             throw std::invalid_argument("Cannot save empty noise map.");
         }
@@ -157,9 +157,15 @@ namespace Noise {
             for (int x = 0; x < width; ++x)
                 img[y * width + x] = static_cast<unsigned char>(std::clamp(noise[y][x], 0.0f, 1.0f) * 255.0f);
 
-        std::filesystem::path outputDir = std::filesystem::current_path().parent_path() / "ImageOutput";
-        std::filesystem::create_directories(outputDir);
-        std::filesystem::path outputFile = outputDir / filename;
+        // Determine output directory: use custom or default
+        std::filesystem::path outDir;
+        if (outputDir.empty()) {
+            outDir = std::filesystem::current_path().parent_path() / "ImageOutput";
+        } else {
+            outDir = outputDir;
+        }
+        std::filesystem::create_directories(outDir);
+        std::filesystem::path outputFile = outDir / filename;
         std::string extension = outputFile.extension().string();
         
         // Convert extension to lowercase for comparison
@@ -194,12 +200,13 @@ namespace Noise {
         float base,
         int seed,
         const std::string& showMap,
-        const std::string& filename
+        const std::string& filename,
+        const std::string& outputDir
     ) {
         auto noise = generate_simplex_map(width, height, scale, octaves, persistence, lacunarity, base, seed);
 
         if (showMap == "image")
-            save_simplex_image(noise, filename);
+            save_simplex_image(noise, filename, outputDir);
         else if (showMap != "none")
             throw std::invalid_argument("Invalid showMap value. Use 'image' or 'none'.");
 

@@ -41,7 +41,10 @@ namespace Noise {
     );
 
     // Save to grayscale PNG or JPEG (auto-detected from extension)
-    void save_perlin_image(const std::vector<std::vector<float>>& noise, const std::string& filename = "perlin_noise.png");
+    // If outputDir is empty, uses default ImageOutput/ directory
+    void save_perlin_image(const std::vector<std::vector<float>>& noise, 
+                          const std::string& filename = "perlin_noise.png",
+                          const std::string& outputDir = "");
 
     /* Entry wrapper � 
         - int width, height: output resolution
@@ -51,7 +54,8 @@ namespace Noise {
         - float persistence : amplitude decay per octave
         - float lacunarity : frequency growth per octave
         - float base : global offset for shifting the pattern
-        - int seed : for randomization based as seed number predefined by functions */
+        - int seed : for randomization based as seed number predefined by functions
+        - outputDir : custom output directory (empty = default ImageOutput/) */
 
     std::vector<std::vector<float>> create_perlinnoise(
         int width,
@@ -64,7 +68,8 @@ namespace Noise {
         float base,
         int seed = -1,
         const std::string& showMap = "image",
-        const std::string& filename = "perlin_noise.png"
+        const std::string& filename = "perlin_noise.png",
+        const std::string& outputDir = ""
     );
 
 } // namespace Noise

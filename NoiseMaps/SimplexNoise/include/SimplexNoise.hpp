@@ -41,9 +41,12 @@ namespace Noise {
     );
 
     // Save to grayscale PNG or JPEG (auto-detected from extension)
-    void save_simplex_image(const std::vector<std::vector<float>>& noise, const std::string& filename = "simplex_noise.png");
+    // If outputDir is empty, uses default ImageOutput/ directory
+    void save_simplex_image(const std::vector<std::vector<float>>& noise, 
+                           const std::string& filename = "simplex_noise.png",
+                           const std::string& outputDir = "");
 
-    // Entry wrapper � same structure as other noise types
+    // Entry wrapper – same structure as other noise types
     std::vector<std::vector<float>> create_simplexnoise(
         int width,
         int height,
@@ -54,7 +57,8 @@ namespace Noise {
         float base = 0.0f,
         int seed = -1,
         const std::string& showMap = "image",
-        const std::string& filename = "simplex_noise.png"
+        const std::string& filename = "simplex_noise.png",
+        const std::string& outputDir = ""
     );
 
 } // namespace Noise

@@ -24,7 +24,10 @@ namespace Noise {
         static void show(const std::vector<std::vector<float>>& noise);
 
         // Save to grayscale PNG or JPEG (auto-detected from extension)
-        static void save(const std::vector<std::vector<float>>& noise, const std::string& filename = "white_noise.png");
+        // If outputDir is empty, uses default ImageOutput/ directory
+        static void save(const std::vector<std::vector<float>>& noise, 
+                        const std::string& filename = "white_noise.png",
+                        const std::string& outputDir = "");
     };
 
     // Helper wrapper (like your create_whitenoise in Python)
@@ -32,6 +35,7 @@ namespace Noise {
         int height = 256,
         int seed = -1,
         const std::string& showMap = "map",
-        const std::string& filename = "white_noise.png");
+        const std::string& filename = "white_noise.png",
+        const std::string& outputDir = "");
 
 } // namespace Noise
