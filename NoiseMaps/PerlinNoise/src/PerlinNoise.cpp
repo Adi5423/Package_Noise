@@ -178,16 +178,24 @@ namespace Noise {
         float lacunarity,
         float base,
         int seed,
-        const std::string& showMap,
+        OutputMode mode,
         const std::string& filename,
         const std::string& outputDir
     ) {
         auto noise = generate_perlin_map(width, height, scale, octaves, frequency, persistence, lacunarity, base, seed);
 
-        if (showMap == "image")
-            save_perlin_image(noise, filename, outputDir);
-        else if (showMap != "none")
-            throw std::invalid_argument("Invalid showMap value. Use 'image' or 'none'.");
+        switch (mode) {
+            case OutputMode::Image:
+                save_perlin_image(noise, filename, outputDir);
+                break;
+            case OutputMode::None:
+                // Do nothing, just return the noise
+                break;
+            case OutputMode::Map:
+                // PerlinNoise doesn't support terminal preview
+                // Fall through to None behavior
+                break;
+        }
 
         return noise;
     }

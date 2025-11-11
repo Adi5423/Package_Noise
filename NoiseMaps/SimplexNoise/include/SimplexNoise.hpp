@@ -12,6 +12,13 @@
 
 namespace Noise {
 
+    // Output mode for create_* functions
+    enum class OutputMode {
+        None,   // Just return the noise map
+        Image,  // Save as image file
+        Map     // Display preview in terminal
+    };
+
     class SimplexNoise {
     private:
         std::vector<int> perm;
@@ -56,7 +63,7 @@ namespace Noise {
         float lacunarity,
         float base = 0.0f,
         int seed = -1,
-        const std::string& showMap = "image",
+        OutputMode mode = OutputMode::Image,
         const std::string& filename = "simplex_noise.png",
         const std::string& outputDir = ""
     );

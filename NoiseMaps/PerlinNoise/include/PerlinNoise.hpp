@@ -12,6 +12,13 @@
 
 namespace Noise {
 
+    // Output mode for create_* functions
+    enum class OutputMode {
+        None,   // Just return the noise map
+        Image,  // Save as image file
+        Map     // Display preview in terminal
+    };
+
     class PerlinNoise {
     private:
         std::vector<int> p; // permutation table
@@ -55,6 +62,7 @@ namespace Noise {
         - float lacunarity : frequency growth per octave
         - float base : global offset for shifting the pattern
         - int seed : for randomization based as seed number predefined by functions
+        - mode : OutputMode::None, Image, or Map
         - outputDir : custom output directory (empty = default ImageOutput/) */
 
     std::vector<std::vector<float>> create_perlinnoise(
@@ -67,7 +75,7 @@ namespace Noise {
         float lacunarity,
         float base,
         int seed = -1,
-        const std::string& showMap = "image",
+        OutputMode mode = OutputMode::Image,
         const std::string& filename = "perlin_noise.png",
         const std::string& outputDir = ""
     );

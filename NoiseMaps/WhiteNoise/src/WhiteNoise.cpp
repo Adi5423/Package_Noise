@@ -104,15 +104,20 @@ namespace Noise {
     // Python-style wrapper
     // -------------------------------------------------------------
     std::vector<std::vector<float>> create_whitenoise(int width, int height, int seed,
-        const std::string& showMap, const std::string& filename, const std::string& outputDir) {
+        OutputMode mode, const std::string& filename, const std::string& outputDir) {
         auto noise = WhiteNoise::generate(width, height, seed);
 
-        if (showMap == "map")
-            WhiteNoise::show(noise);
-        else if (showMap == "image")
-            WhiteNoise::save(noise, filename, outputDir);
-        else if (showMap != "none")
-            throw std::invalid_argument("Invalid showMap value. Use 'map', 'image', or 'none'.");
+        switch (mode) {
+            case OutputMode::Map:
+                WhiteNoise::show(noise);
+                break;
+            case OutputMode::Image:
+                WhiteNoise::save(noise, filename, outputDir);
+                break;
+            case OutputMode::None:
+                // Do nothing, just return the noise
+                break;
+        }
 
         return noise;
     }

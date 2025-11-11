@@ -199,16 +199,24 @@ namespace Noise {
         float lacunarity,
         float base,
         int seed,
-        const std::string& showMap,
+        OutputMode mode,
         const std::string& filename,
         const std::string& outputDir
     ) {
         auto noise = generate_simplex_map(width, height, scale, octaves, persistence, lacunarity, base, seed);
 
-        if (showMap == "image")
-            save_simplex_image(noise, filename, outputDir);
-        else if (showMap != "none")
-            throw std::invalid_argument("Invalid showMap value. Use 'image' or 'none'.");
+        switch (mode) {
+            case OutputMode::Image:
+                save_simplex_image(noise, filename, outputDir);
+                break;
+            case OutputMode::None:
+                // Do nothing, just return the noise
+                break;
+            case OutputMode::Map:
+                // SimplexNoise doesn't support terminal preview
+                // Fall through to None behavior
+                break;
+        }
 
         return noise;
     }

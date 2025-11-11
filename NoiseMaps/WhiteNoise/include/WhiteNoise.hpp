@@ -15,6 +15,13 @@
 
 namespace Noise {
 
+    // Output mode for create_* functions
+    enum class OutputMode {
+        None,   // Just return the noise map, don't display or save
+        Image,  // Save as image file
+        Map     // Display preview in terminal
+    };
+
     class WhiteNoise {
     public:
         // Generate a 2D white noise map (values between 0.0 and 1.0)
@@ -34,7 +41,7 @@ namespace Noise {
     std::vector<std::vector<float>> create_whitenoise(int width = 256,
         int height = 256,
         int seed = -1,
-        const std::string& showMap = "map",
+        OutputMode mode = OutputMode::Image,
         const std::string& filename = "white_noise.png",
         const std::string& outputDir = "");
 

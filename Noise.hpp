@@ -8,6 +8,15 @@
 
 #pragma once
 
+namespace Noise {
+    // Output mode for create_* functions
+    enum class OutputMode {
+        None,   // Just return the noise map, don't display or save
+        Image,  // Save as image file
+        Map     // Display preview in terminal (WhiteNoise only)
+    };
+}
+
 #include "NoiseMaps/WhiteNoise/include/WhiteNoise.hpp"
 #include "NoiseMaps/PerlinNoise/include/PerlinNoise.hpp"
 #include "NoiseMaps/SimplexNoise/include/SimplexNoise.hpp"
