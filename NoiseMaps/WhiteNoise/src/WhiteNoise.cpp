@@ -35,6 +35,10 @@ namespace Noise {
     // Show preview in terminal (optional)
     // -------------------------------------------------------------
     void WhiteNoise::show(const std::vector<std::vector<float>>& noise) {
+        if (noise.empty() || noise[0].empty()) {
+            throw std::invalid_argument("Cannot show empty noise map.");
+        }
+
         std::cout << "\n[Preview of White Noise Map]\n";
         int previewH = std::min((int)noise.size(), 10);
         int previewW = std::min((int)noise[0].size(), 20);
