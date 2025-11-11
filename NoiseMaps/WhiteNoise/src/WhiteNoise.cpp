@@ -2,8 +2,6 @@
 #include "WhiteNoise.hpp"
 #include <iostream>
 #include <random>
-#include <fstream>
-//#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 #include <filesystem>
 
