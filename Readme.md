@@ -1,5 +1,4 @@
 ﻿﻿﻿`<h1 align="center">`RelNo_D1`</h1>`
-
 <p align="center">
   <b>A modular C++ library for procedural noise maps generation</b><br/>
   Create algorithmically beautiful <b>WhiteNoise</b>, <b>PerlinNoise</b>, and <b>SimplexNoise</b> maps with ease.<br/>
@@ -352,6 +351,21 @@ Each map can be combined, remapped or visualized as textures, heightmaps, proced
 
 ---
 
+### 👨‍💻 About the Developer
+
+**Aditya Tiwari**
+- 💼 LinkedIn: [Aditya Tiwari](https://www.linkedin.com/in/adii5423/)
+- 🐱 GitHub: [GitHub Profile](https://github.com/adi5423)
+- 📧 Email: adii54ti23@gmail.com
+- 🐦 Twitter: [@Adii5423](https://twitter.com/Adii5423)
+- 📧 Instagram: [@Adii5423.exe](https://instagram.com/Adii5423)
+
+---
+
+### Contributing
+If you would like to contribute to this project, feel free to fork the repository and submit a pull request. Any contributions, suggestions, or improvements are welcome!
+
+---
 ## License
 
 This repository includes an **MIT License**. See [`LICENSE.txt`](LICENSE.txt) for details..
