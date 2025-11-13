@@ -446,7 +446,7 @@ Each map can be combined, remapped or visualized as textures, heightmaps, proced
 ---
 
 
-# 📦 Performance Summary
+# Performance Summary
 
 After optimization, PinkNoise generation is now:
 
