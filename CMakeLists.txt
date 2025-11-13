@@ -48,10 +48,15 @@ if (BUILD_EXAMPLES)
     add_executable(RelNoD_TilemapTest examples/test_tilemap.cpp)
     target_link_libraries(RelNoD_TilemapTest PRIVATE TilemapExport CaveNoise PerlinNoise TerrainNoise)
     target_compile_definitions(RelNoD_TilemapTest PRIVATE "RelNo_D1_TILEMAP_TEST")
+    
+    # Post-processing test
+    add_executable(RelNoD_PostProcessingTest examples/test_postprocessing.cpp)
+    target_link_libraries(RelNoD_PostProcessingTest PRIVATE PostProcessing PerlinNoise)
+    target_compile_definitions(RelNoD_PostProcessingTest PRIVATE "RelNo_D1_POSTPROCESSING_TEST")
 endif()
 
 # Installation setup — works on all platforms & paths
-install(TARGETS WhiteNoise PerlinNoise SimplexNoise TerrainNoise CaveNoise TilemapExport
+install(TARGETS WhiteNoise PerlinNoise SimplexNoise TerrainNoise CaveNoise TilemapExport PostProcessing
     EXPORT PackageNoiseTargets
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
@@ -65,4 +70,5 @@ install(DIRECTORY NoiseMaps/SimplexNoise/include/ DESTINATION include/Noise/Simp
 install(DIRECTORY NoiseMaps/TerrainNoise/include/ DESTINATION include/Noise/TerrainNoise)
 install(DIRECTORY NoiseMaps/CaveNoise/include/ DESTINATION include/Noise/CaveNoise)
 install(DIRECTORY NoiseMaps/TilemapExport/include/ DESTINATION include/Noise/TilemapExport)
+install(DIRECTORY NoiseMaps/PostProcessing/include/ DESTINATION include/Noise/PostProcessing)
 install(FILES Noise.hpp DESTINATION include/Noise)

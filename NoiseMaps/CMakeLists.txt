@@ -52,6 +52,13 @@ target_include_directories(TilemapExport PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/TilemapExport/include
 )
 
+add_library(PostProcessing STATIC
+    PostProcessing/src/PostProcessing.cpp
+)
+target_include_directories(PostProcessing PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/PostProcessing/include
+)
+
 # Shared stb implementation (compiled once)
 add_library(STBImageWrite OBJECT ${CMAKE_SOURCE_DIR}/external/stb_impl.cpp)
 

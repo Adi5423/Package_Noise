@@ -23,3 +23,4 @@ namespace Noise {
 #include "NoiseMaps/TerrainNoise/include/TerrainNoise.hpp"
 #include "NoiseMaps/CaveNoise/include/CaveNoise.hpp"
 #include "NoiseMaps/TilemapExport/include/TilemapExport.hpp"
+#include "NoiseMaps/PostProcessing/include/PostProcessing.hpp"
