@@ -1,7 +1,7 @@
 ﻿﻿﻿﻿<h1 align="center">`RelNo_D1`</h1>
 <p align="center">
   <b>A modular C++ library for procedural noise maps generation</b><br/>
-  Create algorithmically beautiful <b>WhiteNoise</b>, <b>PerlinNoise</b>, <b>SimplexNoise</b>,and <b>PinkNoise</b> maps with ease.<br/>
+  Create algorithmically beautiful <b>WhiteNoise</b>, <b>PerlinNoise</b>, and <b>SimplexNoise</b> maps with ease.<br/>
   <i>Lightweight • Dependency-free • Open-source</i>
 </p>
 
@@ -39,7 +39,6 @@ RelNo_D1 — a small, dependency-light C++ library of 2D noise maps:
 - **WhiteNoise**
 - **PerlinNoise**
 - **SimplexNoise**
-- **PinkNoise**
 
 Designed to be modular, easy to include and extend. The library provides single-call functions (mirroring a Python-style API) and focuses on correctness, clarity and zero runtime dependencies (except a single header for image writing).
 
@@ -52,7 +51,7 @@ Designed to be modular, easy to include and extend. The library provides single-
 - [API reference](#api-reference)
 - [Detailed function reference &amp; calculations](#detailed-function-reference--calculations)
 - [Math &amp; Implementation notes](#math--implementation-notes)
-- [Project Summary](#project-summary)
+- [Project layout](#project-layout)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -183,6 +182,7 @@ Each module exposes:
 | `create_whitenoise(width, height, seed, showMap, filename)`                                                            | Generates purely random white noise  |
 | `create_perlinnoise(width, height, scale, octaves, frequency, persistence, lacunarity, base, seed, showMap, filename)` | Generates multi-octave Perlin noise  |
 | `create_simplexnoise(width, height, scale, octaves, persistence, lacunarity, base, seed, showMap, filename)`           | Generates multi-octave Simplex noise |
+| `create_pinknoise()`    | **1/f natural fractal noise** | `[0,1]`                     | SIMD + threaded + integral image optimized |
 
 All functions return a **2D vector** of floats normalized in `[0,1]`.
 When `showMap = "image"`, they additionally save a grayscale PNG.
@@ -350,158 +350,102 @@ std::vector<std::vector<float>> Noise::create_simplexnoise(
 
 ---
 
-# ⚡ What’s New in RelNo_D1 (Performance Update)
-
-The latest version of **RelNo_D1** introduces a fully optimized backend for procedural noise generation, bringing **SIMD acceleration**, **parallel processing**, and **high‑efficiency memory layouts** to your noise maps.
-
-This update significantly enhances performance for large resolutions, multi‑octave noise, and real‑time use‑cases.
-
----
-
-# 🚀 PinkNoise — 1/f Spectral Noise (New Module)
-
-RelNo_D1 now includes a fully optimized **PinkNoise generator**, producing natural 1/f fractal noise using:
-
-* **Summed Area Tables (Integral Images)** for instant O(1) box averaging
-* **Contiguous 64‑byte aligned buffers** for SIMD workloads
-* **Parallel row‑based processing** using modern C++ threading
-* **AVX2 vectorized accumulation and normalization**
-* **Deterministic per‑octave random generation**
-
-The result is one of the **fastest and cleanest PinkNoise implementations** available in a lightweight C++ library.
-
-PinkNoise integrates seamlessly into the library via:
+### 🔴 **4. `create_pinknoise`**
 
 ```cpp
-std::vector<std::vector<float>> create_pinknoise(
-    int width, int height,
-    int octaves = 6,
-    float alpha = 1.0f,
-    int sampleRate = 44100,
-    float amplitude = 1.0f,
-    int seed = -1,
-    OutputMode mode = OutputMode::Image,
-    const std::string& filename = "pink_noise.png",
-    const std::string& outputDir = ""
+std::vector<std::vector<float>> Noise::create_pinknoise(
+    int width,
+    int height,
+    int octaves,
+    float alpha,
+    int sampleRate,
+    float amplitude,
+    int seed,
+    OutputMode mode,
+    const std::string& filename,
+    const std::string& outputDir
 );
 ```
 
+#### Parameters
+
+| Name              | Type         | Description                        |
+| ----------------- | ------------ | ---------------------------------- |
+| `width`, `height` | int          | Output resolution                  |
+| `octaves`         | int          | Number of fractal layers           |
+| `alpha`           | float        | Spectral slope (1.0 = true pink)   |
+| `sampleRate`      | int          | Controls octave block-size spacing |
+| `amplitude`       | float        | Output intensity multiplier        |
+| `seed`            | int          | Deterministic RNG seed             |
+| `mode`            | `OutputMode` | Save or return only                |
+| `filename`        | string       | Output PNG/JPG name                |
+| `outputDir`       | string       | Directory for saved image          |
+
+#### Returns
+
+A 2D vector `[height][width]` of normalized floats ∈ **[0,1]**.
+
 ---
 
-# 🧠 Internal Architecture Upgrades
+## 🔬 How PinkNoise Works (Simplified)
 
-This release includes a major internal rewrite designed to improve performance while keeping the external API identical and easy to use.
+Pink noise follows a 1/f energy distribution found in:
 
-## 1️⃣ SIMD‑Ready Memory Layout
+* nature (clouds, terrain, coastlines)
+* audio spectra
+* organic textures
+* atmospheric & astrophysical data
 
-All heavy computations now use **aligned contiguous float buffers** via a custom `AlignedBuffer` type.
+RelNo_D1 generates PinkNoise using a **high‑performance spectral method**:
 
-Benefits:
+### 1️⃣ Generate white noise per octave
 
-* Faster CPU cache utilization
-* Perfect for AVX2 vector loads
-* No heap fragmentation from `vector<vector<float>>`
+A fresh white‑noise layer is created per octave using seed + octave.
 
-The public API still returns a friendly `std::vector<std::vector<float>>`.
+### 2️⃣ Convert to a Summed Area Table (Integral Image)
 
----
-
-## 2️⃣ Summed Area Table (Integral Image) Blur
-
-PinkNoise previously used a costly block‑average approach. This was replaced with a **Summed Area Table**, reducing blur cost from:
+This enables constant‑time box averages:
 
 ```
-O(N * blockSize^2) → O(N)
+sum = I(y2,x2) - I(y1,x2) - I(y2,x1) + I(y1,x1)
 ```
 
-This is a massive performance gain for large maps and multi‑octave noise.
+### 3️⃣ Apply octave‑scaled block blur
 
----
+Larger octaves → larger sampled regions → lower frequency content.
 
-## 3️⃣ Multi‑Threaded Box Averaging
+### 4️⃣ Thread‑parallel averaging
 
-PinkNoise blur work is now split by rows using:
+Each thread processes rows using an atomic counter.
 
-* `std::thread`
-* `std::atomic<int>` row distribution
-
-Each thread fetches a row index and processes independently.
-
-Benefits:
-
-* Zero locks
-* Scales across all cores
-* Perfectly deterministic output
-
----
-
-## 4️⃣ AVX2 Vectorized Math
-
-Where available, RelNo_D1 uses AVX2 instructions for:
-
-* Layer accumulation (`acc += avg * weight`)
-* Final normalization and clamping
-
-This provides an **8× throughput boost** on supported CPUs.
-
----
-
-## 5️⃣ Deterministic Per‑Octave RNG
-
-Each octave uses:
+### 5️⃣ AVX2 vectorized accumulation
 
 ```
-octaveSeed = seed + octave
+acc += avg * weight
+weight = 1 / (blockSize^alpha)
 ```
 
-With fallback to `random_device` when seed = -1.
+### 6️⃣ Normalize & clamp
 
-Ensures stability and reproducibility.
-
----
-
-# 🌈 Updated Module List
-
-RelNo_D1 now includes the following map generators:
-
-* **WhiteNoise** – pure randomness
-* **PerlinNoise** – classical gradient noise
-* **SimplexNoise** – fast low‑artifact alternative
-* **PinkNoise (NEW)** – fractal 1/f spectral noise with advanced optimization
-
-Each module supports the same easy one‑call interface.
-
----
-
-# 🛠 Updated API Table
-
-| Function                | Description                   | Output                      | Notes                                      |
-| ----------------------- | ----------------------------- | --------------------------- | ------------------------------------------ |
-| `create_whitenoise()`   | Pure stochastic noise         | `[0,1]`                     | CPU‑fast, simple RNG                       |
-| `create_perlinnoise()`  | Gradient noise with octaves   | `[0,1]`                     | Good for textures, terrain                 |
-| `create_simplexnoise()` | Faster Perlin alternative     | `[-1,1] → [0,1]` normalized | No grid artifacts                          |
-| `create_pinknoise()`    | **1/f natural fractal noise** | `[0,1]`                     | SIMD + threaded + integral image optimized |
-
----
-
-# 📸 PinkNoise Usage Example
-
-```cpp
-auto pink = create_pinknoise(
-    512, 512,
-    6,           // octaves
-    1.0f,        // spectral slope (1 = true pink)
-    44100,       // sample rate
-    1.0f,        // amplitude
-    123,         // seed
-    OutputMode::Image,
-    "PinkNoise.png"
-);
+```
+pixel = clamp((acc / totalWeight) * amplitude, 0, 1)
 ```
 
-This produces a natural‑looking fractal texture and saves it to `ImageOutput/`.
+Produces natural fractal textures ideal for terrain, roughness maps, organic patterns, and more.
 
 ---
+
+
+## Math & Implementation notes
+
+* **WhiteNoise:** purely random; good baseline for testing.
+* **Perlin:** smooth gradient noise, continuous with derivatives; better for terrain textures.
+* **Simplex:** newer algorithm by Ken Perlin; lower computational cost and fewer artifacts at diagonals.
+
+Each map can be combined, remapped or visualized as textures, heightmaps, procedural materials, or fractal terrain layers.
+
+---
+
 
 # 📦 Performance Summary
 
@@ -523,7 +467,7 @@ This makes RelNo_D1 suitable for:
 
 ---
 
-# 💡 Philosophy of RelNo
+## 💡 Philosophy of RelNo
 
 RelNo aims to provide:
 
@@ -533,196 +477,6 @@ RelNo aims to provide:
 * Clean structure for extension into RelNo_D2 / RelNo_D3
 
 This update lays the groundwork for future 3D noise (D2) and 4D/temporal noise (D3).
-
----
-
-# 📖 Want to Learn More?
-
-Check the full implementation notes inside `/NoiseMaps/PinkNoise/`. Each step is heavily commented for educational purposes.
-
----
-
-## 🟥 Detailed PinkNoise Function Reference
-
-### 🔴 **4. `create_pinknoise`**
-
-```cpp
-std::vector<std::vector<float>> Noise::create_pinknoise(
-    int width,
-    int height,
-    int octaves,
-    float alpha,
-    int sampleRate,
-    float amplitude,
-    int seed,
-    OutputMode mode,
-    const std::string& filename,
-    const std::string& outputDir
-);
-```
-
-#### Parameters
-
-| Name              | Type         | Description                        |
-| ----------------- | ------------ | ---------------------------------- |
-| `width`, `height` | int          | Output resolution                  |
-| `octaves`         | int          | Number of fractal layers           |
-| `alpha`           | float        | Spectral slope (1.0 = true pink)   |
-| `sampleRate`      | int          | Controls octave block-size spacing |
-| `amplitude`       | float        | Output intensity multiplier        |
-| `seed`            | int          | Deterministic RNG seed             |
-| `mode`            | `OutputMode` | Save or return only                |
-| `filename`        | string       | Output PNG/JPG name                |
-| `outputDir`       | string       | Directory for saved image          |
-
-#### Returns
-
-A 2D vector `[height][width]` of normalized floats ∈ **[0,1]**.
-
----
-
-## 🔬 How PinkNoise Works (Simplified)
-
-Pink noise follows a 1/f energy distribution found in:
-
-* nature (clouds, terrain, coastlines)
-* audio spectra
-* organic textures
-* atmospheric & astrophysical data
-
-RelNo_D1 generates PinkNoise using a **high‑performance spectral method**:
-
-### 1️⃣ Generate white noise per octave
-
-A fresh white‑noise layer is created per octave using seed + octave.
-
-### 2️⃣ Convert to a Summed Area Table (Integral Image)
-
-This enables constant‑time box averages:
-
-```
-sum = I(y2,x2) - I(y1,x2) - I(y2,x1) + I(y1,x1)
-```
-
-### 3️⃣ Apply octave‑scaled block blur
-
-Larger octaves → larger sampled regions → lower frequency content.
-
-### 4️⃣ Thread‑parallel averaging
-
-Each thread processes rows using an atomic counter.
-
-### 5️⃣ AVX2 vectorized accumulation
-
-```
-acc += avg * weight
-weight = 1 / (blockSize^alpha)
-```
-
-### 6️⃣ Normalize & clamp
-
-```
-pixel = clamp((acc / totalWeight) * amplitude, 0, 1)
-```
-
-Produces natural fractal textures ideal for terrain, roughness maps, organic patterns, and more.
-
----
-
-### 🔴 **4. `create_pinknoise`**
-
-```cpp
-std::vector<std::vector<float>> Noise::create_pinknoise(
-    int width,
-    int height,
-    int octaves,
-    float alpha,
-    int sampleRate,
-    float amplitude,
-    int seed,
-    OutputMode mode,
-    const std::string& filename,
-    const std::string& outputDir
-);
-```
-
-#### Parameters
-
-| Name              | Type         | Description                        |
-| ----------------- | ------------ | ---------------------------------- |
-| `width`, `height` | int          | Output resolution                  |
-| `octaves`         | int          | Number of fractal layers           |
-| `alpha`           | float        | Spectral slope (1.0 = true pink)   |
-| `sampleRate`      | int          | Controls octave block-size spacing |
-| `amplitude`       | float        | Output intensity multiplier        |
-| `seed`            | int          | Deterministic RNG seed             |
-| `mode`            | `OutputMode` | Save or return only                |
-| `filename`        | string       | Output PNG/JPG name                |
-| `outputDir`       | string       | Directory for saved image          |
-
-#### Returns
-
-A 2D vector `[height][width]` of normalized floats ∈ **[0,1]**.
-
----
-
-## 🔬 How PinkNoise Works (Simplified)
-
-Pink noise follows a 1/f energy distribution found in:
-
-* nature (clouds, terrain, coastlines)
-* audio spectra
-* organic textures
-* atmospheric & astrophysical data
-
-RelNo_D1 generates PinkNoise using a **high‑performance spectral method**:
-
-### 1️⃣ Generate white noise per octave
-
-A fresh white‑noise layer is created per octave using seed + octave.
-
-### 2️⃣ Convert to a Summed Area Table (Integral Image)
-
-This enables constant‑time box averages:
-
-```
-sum = I(y2,x2) - I(y1,x2) - I(y2,x1) + I(y1,x1)
-```
-
-### 3️⃣ Apply octave‑scaled block blur
-
-Larger octaves → larger sampled regions → lower frequency content.
-
-### 4️⃣ Thread‑parallel averaging
-
-Each thread processes rows using an atomic counter.
-
-### 5️⃣ AVX2 vectorized accumulation
-
-```
-acc += avg * weight
-weight = 1 / (blockSize^alpha)
-```
-
-### 6️⃣ Normalize & clamp
-
-```
-pixel = clamp((acc / totalWeight) * amplitude, 0, 1)
-```
-
-Produces natural fractal textures ideal for terrain, roughness maps, organic patterns, and more.
-
----
-
-
-
-## Math & Implementation notes
-
-* **WhiteNoise:** purely random; good baseline for testing.
-* **Perlin:** smooth gradient noise, continuous with derivatives; better for terrain textures.
-* **Simplex:** newer algorithm by Ken Perlin; lower computational cost and fewer artifacts at diagonals.
-
-Each map can be combined, remapped or visualized as textures, heightmaps, procedural materials, or fractal terrain layers.
 
 ---
 
