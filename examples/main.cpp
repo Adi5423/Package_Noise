@@ -39,5 +39,30 @@ int main() {
         OutputMode::Image, 
         "simplex_Noise.png"
     );
+    
+    // Pink noise test image
+    create_pinknoise(
+        512, 512,
+        6,          // octaves
+        1.0f,       // alpha (pink)
+        44100,      // sample rate
+        1.0f,       // amplitude
+        123,        // seed
+        OutputMode::Image,
+        "pinkNoise.png"
+    );
+
+    // Pink noise test image
+    create_pinknoise(
+        512, 512,
+        3,          // octaves
+        0.8f,       // alpha (pink)
+        23400,      // sample rate
+        0.5f,       // amplitude
+        314,        // seed
+        OutputMode::Image,
+        "pink_noise.png"
+    );
+
     return 0;
 }
